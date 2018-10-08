@@ -10,9 +10,21 @@ const devMode = process.argv.indexOf('-d') >= 0 || process.env.NODE_ENV === 'dev
 module.exports = {
 	mode: devMode ? 'development' : 'production',
 	devtool: devMode ? 'cheap-module-eval-source-map' : 'source-map',
-	entry: './src/index.tsx',
+	// entry: './src/index.tsx',
+	entry: {
+		vendor: [
+			// common packages
+			'react',
+			'react-dom',
+		],
+		app: [
+			`./src/index.tsx`,
+		]
+	},
 	output: {
-		filename: '[name].js',
+		libraryTarget: 'umd',
+		filename: '[name].bundle.js',
+		chunkFilename: '[name].js',
 		path: path.resolve(__dirname, 'dist')
 	},
 	devServer: {
@@ -23,24 +35,47 @@ module.exports = {
 	module: {
 		rules: [
 			{
-				test: /\.(sa|sc|c)ss$/,
+				// test: /\.(sa|sc|c)ss$/,
+				test: /\.css$/,
 				use: [
 				  	devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
-					'css-loader',
-					'sass-loader',
+					{
+						loader: "css-loader",
+						options: {
+							sourceMap: true,
+							modules: true,
+                       		importLoaders: 1,
+							// modules: true,
+						}
+					},
+					// {
+					// 	loader: "sass-loader",
+					// 	options: {
+					// 		sourceMap: true
+					// 	}
+					// }
 				],
 			},
 			{
 				test: /\.(ts|tsx)$/,
 				use: [
-					'babel-loader',
+					// 'babel-loader',
 					'awesome-typescript-loader'
 				],
+			},
+			{
+				test: /\.(png|jpg|jpeg|gif|woff|woff2|eot|ttf)$/,
+				use: [{
+					loader: 'url-loader',
+					options: {
+						limit: 100 * 1024,
+					},
+				}],
 			}
 		]
 	},
 	resolve: {
-        extensions: ['.js', '.json', '.ts', '.tsx'],
+        extensions: ['.js', '.json', '.ts', '.tsx', '.css'],
     },
 	plugins: [
 		new HtmlWebpackPlugin({
